@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageView
 import android.widget.TextView
+import com.squareup.picasso.Picasso
 import com.twitter.sdk.android.core.models.Tweet
 import kotlinx.android.synthetic.main.tweet_row.view.*
 
@@ -24,7 +26,7 @@ class TweetAdapter(context: Context, tweetList: MutableList<Tweet>): BaseAdapter
 
         if (view == null) {
             view = inflater.inflate(R.layout.tweet_row, parent, false)
-            holder = ViewHolder(view.textview_user_name, view.textview_screen_name, view.textview_messages)
+            holder = ViewHolder(view.textview_user_name, view.textview_screen_name, view.textview_messages, view.imageview_usericon)
             view.tag = holder
         } else {
             holder = view.tag as ViewHolder
@@ -32,8 +34,12 @@ class TweetAdapter(context: Context, tweetList: MutableList<Tweet>): BaseAdapter
 
         val tweet = getItem(position)
         holder.userNameTextView.text = tweet.user.name
-        holder.screenNameTextView.text = tweet.user.screenName
+        holder.screenNameTextView.text = "@" + tweet.user.screenName
         holder.messagesTextView.text = tweet.text
+
+        Picasso.get().load(tweet.user.profileImageUrlHttps).into(holder.userIconImageView)
+
+        holder.userIconImageView
 
         return view!!
     }
@@ -52,4 +58,4 @@ class TweetAdapter(context: Context, tweetList: MutableList<Tweet>): BaseAdapter
 
 }
 
-data class ViewHolder(val userNameTextView: TextView, val screenNameTextView: TextView, val messagesTextView: TextView)
+data class ViewHolder(val userNameTextView: TextView, val screenNameTextView: TextView, val messagesTextView: TextView, val userIconImageView: ImageView)
