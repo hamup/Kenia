@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.Toast
 import com.twitter.sdk.android.core.Callback
 import com.twitter.sdk.android.core.Result
 import com.twitter.sdk.android.core.TwitterException
@@ -22,7 +23,12 @@ class LoginActivity : AppCompatActivity() {
         login_button.callback = object : Callback<TwitterSession>() {
             override fun success(result: Result<TwitterSession>?) {
                 Log.d(TAG, "twitterLogin:success$result")
-                finish()
+                val intent = Intent(this@LoginActivity, TimeLineActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+                val toast = Toast.makeText(applicationContext, "ログインしました。", Toast.LENGTH_SHORT)
+                toast.show()
+
             }
 
             override fun failure(exception: TwitterException?) {
