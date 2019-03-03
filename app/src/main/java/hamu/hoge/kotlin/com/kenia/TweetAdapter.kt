@@ -1,6 +1,7 @@
 package hamu.hoge.kotlin.com.kenia
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,20 +27,45 @@ class TweetAdapter(context: Context, tweetList: MutableList<Tweet>): BaseAdapter
 
         if (view == null) {
             view = inflater.inflate(R.layout.tweet_row, parent, false)
-            holder = ViewHolder(view.textview_user_name, view.textview_screen_name, view.textview_messages, view.imageview_usericon)
+            holder = ViewHolder(view.textview_user_name, view.textview_screen_name,
+                                view.textview_messages, view.textview_via_client,
+                                view.textview_reteet_by_user, view.imageview_usericon)
             view.tag = holder
         } else {
             holder = view.tag as ViewHolder
         }
 
         val tweet = getItem(position)
-        holder.userNameTextView.text = tweet.user.name
-        holder.screenNameTextView.text = "@" + tweet.user.screenName
-        holder.messagesTextView.text = tweet.text
+        var textColor: String? = null
 
-        Picasso.get().load(tweet.user.profileImageUrlHttps).into(holder.userIconImageView)
+        /* tweet or retweet
+         * TODO: 類似コードをキレイにまとめる
+         */
+        if (tweet.retweetedStatus == null) {
+            holder.userNameTextView.text = tweet.user.name
+            holder.screenNameTextView.text = "@" + tweet.user.screenName
+            holder.messagesTextView.text = tweet.text
+            holder.viaTextView.text = "via " + tweet.source.split(Regex("[>,<]"))[2]
+            holder.retweetByUserTextView.text = ""
+            Picasso.get().load(tweet.user.profileImageUrlHttps).into(holder.userIconImageView)
 
-        holder.userIconImageView
+            textColor = "#696969"
+        } else {
+            holder.userNameTextView.text = tweet.retweetedStatus.user.name
+            holder.screenNameTextView.text = "@" + tweet.retweetedStatus.user.screenName
+            holder.messagesTextView.text = tweet.retweetedStatus.text
+            holder.viaTextView.text = "via " + tweet.retweetedStatus.source.split(Regex("[>,<]"))[2]
+            holder.retweetByUserTextView.text = "Retweet by @" + tweet.user.screenName
+            Picasso.get().load(tweet.retweetedStatus.user.profileImageUrlHttps).into(holder.userIconImageView)
+
+            textColor = "#008000"
+        }
+
+        holder.userNameTextView.setTextColor(Color.parseColor(textColor))
+        holder.screenNameTextView.setTextColor(Color.parseColor(textColor))
+        holder.messagesTextView.setTextColor(Color.parseColor(textColor))
+        holder.viaTextView.setTextColor(Color.parseColor(textColor))
+        holder.retweetByUserTextView.setTextColor(Color.parseColor(textColor))
 
         return view!!
     }
@@ -58,4 +84,6 @@ class TweetAdapter(context: Context, tweetList: MutableList<Tweet>): BaseAdapter
 
 }
 
-data class ViewHolder(val userNameTextView: TextView, val screenNameTextView: TextView, val messagesTextView: TextView, val userIconImageView: ImageView)
+data class ViewHolder(val userNameTextView: TextView, val screenNameTextView: TextView,
+                      val messagesTextView: TextView, val viaTextView: TextView,
+                      val retweetByUserTextView: TextView,val userIconImageView: ImageView)

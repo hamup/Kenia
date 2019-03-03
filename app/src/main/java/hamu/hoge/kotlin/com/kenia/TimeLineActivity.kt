@@ -3,6 +3,8 @@ package hamu.hoge.kotlin.com.kenia
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.AbsListView
+import android.widget.Toast
 import com.twitter.sdk.android.core.Callback
 import com.twitter.sdk.android.core.Result
 import com.twitter.sdk.android.core.TwitterCore
@@ -22,26 +24,49 @@ class TimeLineActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_timeline)
 
-
         adapter = TweetAdapter(this, tweetList)
         listview_timeline.adapter = adapter
+
+        /* first load timeline */
         getHomeTimeLine()
+
+        listview_timeline.setOnScrollListener(object : AbsListView.OnScrollListener{
+            override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
+                if (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount) {
+                    getHomeTimeLine(tweetList.last().id)
+                }
+            }
+
+            override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
+
+            }
+        })
     }
 
-    fun getHomeTimeLine() {
-        val call = TwitterCore.getInstance().apiClient.statusesService.homeTimeline(20, null, null, false, false, false,false)
+    private fun getHomeTimeLine(maxId : Long? = null) {
+        val call = TwitterCore.getInstance().apiClient.statusesService.homeTimeline(20, null, maxId, false, false, false,false)
         call.enqueue(object : Callback<List<Tweet>>(){
             override fun success(result: Result<List<Tweet>>?) {
                 if (result != null) {
                     tweetList.addAll(result.data)
                     adapter?.notifyDataSetChanged()
+
+                    // restoreListPosition()
                     Log.d(TAG, "success to get home timeline.")
                 }
             }
 
             override fun failure(exception: TwitterException?) {
+                val toast = Toast.makeText(applicationContext, "タイムラインの取得回数が制限に達しました。", Toast.LENGTH_SHORT)
+                toast.show()
                 Log.d(TAG, "failed to get home timeline.")
             }
         })
+    }
+
+    private fun restoreListPosition() {
+        val position = listview_timeline.firstVisiblePosition
+        val yOffset = listview_timeline.getChildAt(0).top
+        listview_timeline.setSelectionFromTop(position, yOffset)
     }
 }
