@@ -1,8 +1,10 @@
 package hamu.hoge.kotlin.com.kenia
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.Menu
 import android.widget.AbsListView
 import android.widget.Toast
 import com.twitter.sdk.android.core.Callback
@@ -24,6 +26,8 @@ class TimeLineActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_timeline)
 
+        verifyUserIsLoggedIn()
+
         adapter = TweetAdapter(this, tweetList)
         listview_timeline.adapter = adapter
 
@@ -43,6 +47,11 @@ class TimeLineActivity : AppCompatActivity() {
         })
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.nav_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
     private fun getHomeTimeLine(maxId : Long? = null) {
         val call = TwitterCore.getInstance().apiClient.statusesService.homeTimeline(20, null, maxId, false, false, false,false)
         call.enqueue(object : Callback<List<Tweet>>(){
@@ -57,8 +66,8 @@ class TimeLineActivity : AppCompatActivity() {
             }
 
             override fun failure(exception: TwitterException?) {
-                val toast = Toast.makeText(applicationContext, "タイムラインの取得回数が制限に達しました。", Toast.LENGTH_SHORT)
-                toast.show()
+                //val toast = Toast.makeText(applicationContext, "タイムラインの取得回数が制限に達しました。", Toast.LENGTH_SHORT)
+                //toast.show()
                 Log.d(TAG, "failed to get home timeline.")
             }
         })
@@ -68,5 +77,13 @@ class TimeLineActivity : AppCompatActivity() {
         val position = listview_timeline.firstVisiblePosition
         val yOffset = listview_timeline.getChildAt(0).top
         listview_timeline.setSelectionFromTop(position, yOffset)
+    }
+
+    private fun verifyUserIsLoggedIn() {
+        if (TwitterCore.getInstance().sessionManager.activeSession?.userId == null) {
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 }
