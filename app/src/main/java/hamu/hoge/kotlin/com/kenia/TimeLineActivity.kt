@@ -2,11 +2,11 @@ package hamu.hoge.kotlin.com.kenia
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.widget.AbsListView
-import android.widget.Toast
 import com.twitter.sdk.android.core.Callback
 import com.twitter.sdk.android.core.Result
 import com.twitter.sdk.android.core.TwitterCore
@@ -34,15 +34,24 @@ class TimeLineActivity : AppCompatActivity() {
         /* first load timeline */
         getHomeTimeLine()
 
-        listview_timeline.setOnScrollListener(object : AbsListView.OnScrollListener{
+        listview_timeline.setOnScrollListener(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
                 if (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount) {
-                    getHomeTimeLine(tweetList.last().id)
+                    getHomeTimeLine(null, tweetList.last().id)
                 }
             }
 
             override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
 
+            }
+        })
+
+        swipe_refresh.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
+            override fun onRefresh() {
+                if (!tweetList.isEmpty()) {
+                    getHomeTimeLine(tweetList.first().id, null)
+                }
+                refreshEndNotify()
             }
         })
     }
@@ -52,17 +61,20 @@ class TimeLineActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
-    private fun getHomeTimeLine(maxId : Long? = null) {
-        val call = TwitterCore.getInstance().apiClient.statusesService.homeTimeline(20, null, maxId, false, false, false,false)
-        call.enqueue(object : Callback<List<Tweet>>(){
+    private fun getHomeTimeLine(sinceId: Long? = null, maxId: Long? = null) {
+        val call = TwitterCore.getInstance().apiClient.statusesService.homeTimeline(20, sinceId, maxId, false, false, false, false)
+        call.enqueue(object : Callback<List<Tweet>>() {
             override fun success(result: Result<List<Tweet>>?) {
-                if (result != null) {
-                    tweetList.addAll(result.data)
-                    adapter?.notifyDataSetChanged()
-
-                    // restoreListPosition()
-                    Log.d(TAG, "success to get home timeline.")
+                if (sinceId != null) {
+                    val tmp_tweetList = tweetList.toMutableList()
+                    tweetList.clear()
+                    tweetList.addAll(result!!.data)
+                    tweetList.addAll(tmp_tweetList)
+                } else {
+                    tweetList.addAll(result!!.data)
                 }
+                adapter?.notifyDataSetChanged()
+                Log.d(TAG, "success to get home timeline.")
             }
 
             override fun failure(exception: TwitterException?) {
@@ -73,17 +85,16 @@ class TimeLineActivity : AppCompatActivity() {
         })
     }
 
-    private fun restoreListPosition() {
-        val position = listview_timeline.firstVisiblePosition
-        val yOffset = listview_timeline.getChildAt(0).top
-        listview_timeline.setSelectionFromTop(position, yOffset)
-    }
-
     private fun verifyUserIsLoggedIn() {
         if (TwitterCore.getInstance().sessionManager.activeSession?.userId == null) {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
+    }
 
+    private fun refreshEndNotify() {
+        if (swipe_refresh.isRefreshing()) {
+            swipe_refresh.setRefreshing(false)
+        }
     }
 }
