@@ -6,6 +6,7 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.widget.AbsListView
 import com.twitter.sdk.android.core.Callback
 import com.twitter.sdk.android.core.Result
@@ -54,6 +55,10 @@ class TimeLineActivity : AppCompatActivity() {
                 refreshEndNotify()
             }
         })
+
+        fab.setOnClickListener {
+            // TODO
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
