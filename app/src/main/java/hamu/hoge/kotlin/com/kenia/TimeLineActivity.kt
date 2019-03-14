@@ -1,13 +1,14 @@
 package hamu.hoge.kotlin.com.kenia
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
-import android.view.View
 import android.widget.AbsListView
+import android.widget.Toast
 import com.twitter.sdk.android.core.Callback
 import com.twitter.sdk.android.core.Result
 import com.twitter.sdk.android.core.TwitterCore
@@ -46,6 +47,18 @@ class TimeLineActivity : AppCompatActivity() {
 
             }
         })
+
+        listview_timeline.setOnItemClickListener { parent, view, position, id ->
+            val tweetActionDialog = TweetActionDialogFragment()
+            tweetActionDialog.onSelectedItem = DialogInterface.OnClickListener { dialog, index ->
+                resources?.let {
+                    val item = it.getStringArray(R.array.TweetAction)[index]
+                    val toast = Toast.makeText(applicationContext, item, Toast.LENGTH_SHORT)
+                    toast.show()
+                }
+            }
+            tweetActionDialog.show(supportFragmentManager,"tweetActionDialog")
+        }
 
         swipe_refresh.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
             override fun onRefresh() {

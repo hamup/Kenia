@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="TweetAction">
+        <item>返信</item>
+        <item>お気に入り</item>
+        <item>RT</item>
+        <item>引用RT</item>
+    </array>
+</resources>
