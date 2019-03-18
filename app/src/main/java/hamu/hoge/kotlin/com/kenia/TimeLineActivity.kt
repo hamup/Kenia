@@ -34,16 +34,16 @@ class TimeLineActivity : AppCompatActivity() {
         listview_timeline.adapter = adapter
 
         /* first load timeline */
-        getHomeTimeLine()
+        getHomeTimeLine(tweetList, adapter)
 
         listview_timeline.setOnScrollListener(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-                if (totalItemCount != 0 && totalItemCount == firstVisibleItem + visibleItemCount) {
-                    getHomeTimeLine(null, tweetList.last().id)
-                }
             }
 
             override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
+                if (scrollState == 0 && view!!.lastVisiblePosition == tweetList.size - 1) {
+                    getHomeTimeLine(tweetList, adapter, null, tweetList.last().id)
+                }
 
             }
         })
@@ -52,9 +52,7 @@ class TimeLineActivity : AppCompatActivity() {
             val tweetActionDialog = TweetActionDialogFragment()
             tweetActionDialog.onSelectedItem = DialogInterface.OnClickListener { dialog, index ->
                 resources?.let {
-                    val item = it.getStringArray(R.array.TweetAction)[index]
-                    val toast = Toast.makeText(applicationContext, item, Toast.LENGTH_SHORT)
-                    toast.show()
+                    createFavorite(this, tweetList[position].id)
                 }
             }
             tweetActionDialog.show(supportFragmentManager,"tweetActionDialog")
@@ -63,7 +61,7 @@ class TimeLineActivity : AppCompatActivity() {
         swipe_refresh.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener {
             override fun onRefresh() {
                 if (!tweetList.isEmpty()) {
-                    getHomeTimeLine(tweetList.first().id, null)
+                    getHomeTimeLine(tweetList, adapter, tweetList.first().id, null)
                 }
                 refreshEndNotify()
             }
@@ -77,30 +75,6 @@ class TimeLineActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.nav_menu, menu)
         return super.onCreateOptionsMenu(menu)
-    }
-
-    private fun getHomeTimeLine(sinceId: Long? = null, maxId: Long? = null) {
-        val call = TwitterCore.getInstance().apiClient.statusesService.homeTimeline(20, sinceId, maxId, false, false, false, false)
-        call.enqueue(object : Callback<List<Tweet>>() {
-            override fun success(result: Result<List<Tweet>>?) {
-                if (sinceId != null) {
-                    val tmp_tweetList = tweetList.toMutableList()
-                    tweetList.clear()
-                    tweetList.addAll(result!!.data)
-                    tweetList.addAll(tmp_tweetList)
-                } else {
-                    tweetList.addAll(result!!.data)
-                }
-                adapter?.notifyDataSetChanged()
-                Log.d(TAG, "success to get home timeline.")
-            }
-
-            override fun failure(exception: TwitterException?) {
-                //val toast = Toast.makeText(applicationContext, "タイムラインの取得回数が制限に達しました。", Toast.LENGTH_SHORT)
-                //toast.show()
-                Log.d(TAG, "failed to get home timeline.")
-            }
-        })
     }
 
     private fun verifyUserIsLoggedIn() {
