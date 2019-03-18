@@ -56,7 +56,7 @@ fun createRetweet(context: Context, id: Long) {
     val call = TwitterCore.getInstance().apiClient.statusesService.retweet(id, null)
     call.enqueue(object : Callback<Tweet>() {
         override fun success(result: Result<Tweet>?) {
-            val toast = Toast.makeText(context, "いいねしました", Toast.LENGTH_SHORT)
+            val toast = Toast.makeText(context, "RTしました", Toast.LENGTH_SHORT)
             toast.show()
             Log.d(TimeLineActivity.TAG, "success to create favorite.")
         }
