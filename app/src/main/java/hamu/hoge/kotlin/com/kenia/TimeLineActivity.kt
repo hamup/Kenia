@@ -52,7 +52,13 @@ class TimeLineActivity : AppCompatActivity() {
             val tweetActionDialog = TweetActionDialogFragment()
             tweetActionDialog.onSelectedItem = DialogInterface.OnClickListener { dialog, index ->
                 resources?.let {
-                    createFavorite(this, tweetList[position].id)
+                    when (index) {
+                        1 -> createFavorite(this, tweetList[position].id)
+                        2 -> createRetweet(this, tweetList[position].id)
+                        else -> {
+
+                        }
+                    }
                 }
             }
             tweetActionDialog.show(supportFragmentManager,"tweetActionDialog")
